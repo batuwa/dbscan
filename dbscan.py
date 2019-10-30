@@ -77,8 +77,9 @@ class DBSCAN:
             elif self.labels[q] == 0:             # if q is not part of a cluster assign it to cluster_number
                 self.labels[q] = cluster_number
                 neighbors_q = self._get_neighbors(self.data, q, self.eps)
-                if len(neighbors_q) >= self.min_pts:
-                    self._expand_cluster(q, neighbors.union(neighbors_q), cluster_number)
+                if len(neighbors_q) >= self.min_pts:             # stop condition for recursion
+                    # recursively expand clusters until stop condition
+                    self._expand_cluster(q, neighbors.union(neighbors_q), cluster_number)    
         return 0
 
     @staticmethod
