@@ -1,25 +1,28 @@
 """Implementation of the DBSCAN Clustering algorithm."""
 
+from dataclasses import dataclass
+
 import numpy as np
 
 
+# Cluster number for unassigned (default) and noise points
+UNASSIGNED = 0
+NOISE = -1
+
+@dataclass
 class DBSCAN:
     """Model for the classical query-based dbscan algorithm. 
        This version makes use of recursion to add points to the current cluster 
        until the stopping condition is met.
-    """
-    def __init__(self, eps=0.5, min_pts=3):
-        """Initialize the model with the dbscan hyperparameters.
-        
+
         Keyword Arguments:
-            eps {float} -- The parameter specifying the radius of a neighborhood
-                           wrt some point. (default: {0.5})
-            min_pts {int} -- The minimum number of points within a points 
-                             neightborhood required for it to be a core point.  (default: {3})
-        """
-        super(DBSCAN, self).__init__()
-        self.eps = eps
-        self.min_pts = min_pts  
+            eps {float}   -- The maximum distance between two points to be considered
+                             connected during formation of clusters. (default: {0.5})
+            min_pts {int} -- The minimum number of points within a points required 
+                             to form a cluster.  (default: {3})
+    """
+    eps: float = 0.5
+    min_pts: int = 3
 
     def fit(self, data):
         """The implementation of the dbscan algorithm for the input data.
@@ -28,23 +31,27 @@ class DBSCAN:
             data {List[List]} -- The input data for the algorithm in the form of a list of feature vectors.
         
         Returns:
-            list -- Labels with the cluster number for each data point index.
+            List -- Labels with the cluster number for each data point index.
         """
+        # initialize the data list
         self.data = data
         
-        cluster_number = 0                     # default cluster number           
-        self.labels = [0] * len(self.data)     # 0 means cluster is unassigned for the point 
+        # default cluster number to unassigned
+        cluster_number = UNASSIGNED
+
+        # initialize all data points with default cluster
+        self.labels = [cluster_number] * len(self.data)
 
         # Go through each point in the dataset
         for p in range(len(self.data)):
-            if self.labels[p] > 0:             # if point is already assigned a cluster check next point
+            if self.labels[p] != UNASSIGNED:             # if point is already assigned a cluster check next point
                 continue 
 
             # else get the neighboring points of the point  
             neighbors = self._get_neighbors(self.data, p, self.eps)
 
-            if len(neighbors) < self.min_pts:   # if point is noise check next point
-                self.labels[p] = -1             # -1 means noise point
+            if len(neighbors) < self.min_pts:   # if point is noise assign and skip
+                self.labels[p] = NOISE          # assign it to noise point
                 continue
             
             # go to next cluster
@@ -71,10 +78,10 @@ class DBSCAN:
         self.labels[p] = cluster_number  
 
         for q in neighbors: 
-            if self.labels[q] < 0:                # if q was noise point change to border point
+            if self.labels[q] == NOISE:           # if q was noise point change to border point
                 self.labels[q] = cluster_number
 
-            elif self.labels[q] == 0:             # if q is not part of a cluster assign it to cluster_number
+            elif self.labels[q] == UNASSIGNED:    # if q is not part of a cluster assign it to the current cluster
                 self.labels[q] = cluster_number
                 neighbors_q = self._get_neighbors(self.data, q, self.eps)
                 if len(neighbors_q) >= self.min_pts:             # stop condition for recursion
@@ -89,7 +96,7 @@ class DBSCAN:
         Arguments:
             data {List[List]} -- The input data for the algorithm in the form of a list of feature vectors.
             center {List} -- The core point whose neighborhood is being calculated.
-            eps {Float} -- The parameter specifying the radius of a neighborhood
+            eps {float} -- The parameter specifying the radius of a neighborhood
                            wrt the center.
         
         Returns:

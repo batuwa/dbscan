@@ -8,3 +8,15 @@ It mimicks `scikit-learn`'s `model.fit()` API.
 The output is fairly close to `scikit-learn`'s built in DBSCAN implementation.  
 
 For comparison look at the `notebooks` folder.
+
+## Requirements
+
+You need Python 3.7 or later since this library uses the [dataclasses](https://docs.python.org/3/library/dataclasses.html) feature introduced in Python 3.7.
+
+## Testing
+
+Run test using the command
+
+```bash
+python -m unittest test
+```
